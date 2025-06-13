@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billionaire Spending Simulator</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gold: #f1c40f;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: white;
+            border-radius: 50px;
+            transition: var(--transition);
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            border: none;
+            color: var(--dark);
+        }
+
+        .tab:hover {
+            transform: translateY(-3px);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .leader-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            max-width: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .leader-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--primary);
+            margin: 0 auto 15px;
+            display: block;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .net-worth-display {
+            font-size: 1.4rem;
+            margin: 15px 0;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            font-weight: 600;
+        }
+
+        .stats-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .stats-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total-display {
+            font-size: 2.8rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+            color: var(--dark);
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .total-display::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+
+        .item:hover .item-image {
+            transform: scale(1.05);
+        }
+
+        .item-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .item-price {
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .buy-btn, .sell-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .buy-btn {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .buy-btn:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .sell-btn {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .sell-btn:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .sell-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .item-count {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--gold);
+            color: var(--dark);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: var(--shadow);
+        }
+
+        .reset-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 12px 30px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .reset-btn:hover {
+            background: #c0392b;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .total-display {
+                font-size: 2rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="modi">Narendra Modi</div>
+            <div class="tab" data-tab="rahul">Rahul Gandhi</div>
+            <div class="tab" data-tab="bill">Bill Gates</div>
+            <div class="tab" data-tab="elon">Elon Musk</div>
+            <div class="tab" data-tab="trump">Donald Trump</div>
+        </div>
+
+        <!-- Modi Tab -->
+        <div id="modi" class="tab-content active">
+            <header>
+                <div class="leader-card">
+                    <img src="https://iili.io/3LLERSt.jpg" alt="Narendra Modi" class="leader-image">
+                    <h1>Spend MODIJI'S Money</h1>
+                    <div class="net-worth-display" id="modiNetWorth">
+                        Net Worth: ₹2,85,000 crores
+                    </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="stats-title">Spending Statistics</div>
+                    <div id="modiStats"></div>
+                </div>
+            </header>
+
+            <div class="total-display" id="modiTotal">Total Spent: ₹0</div>
+
+            <div class="items-grid" id="modiItems"></div>
+
+            <button class="reset-btn" data-reset="modi">Reset Spending</button>
+        </div>
+
+        <!-- Rahul Tab -->
+        <div id="rahul" class="tab-content">
+            <header>
+                <div class="leader-card">
+                    <img src="https://iili.io/3Qqb03F.jpg" alt="Rahul Gandhi" class="leader-image">
+                    <h1>Spend Rahul's Money</h1>
+                    <div class="net-worth-display" id="rahulNetWorth">
+                        Net Worth: ₹20,000 crores
+                    </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="stats-title">Spending Statistics</div>
+                    <div id="rahulStats"></div>
+                </div>
+            </header>
+
+            <div class="total-display" id="rahulTotal">Total Spent: ₹0</div>
+
+            <div class="items-grid" id="rahulItems"></div>
+
+            <button class="reset-btn" data-reset="rahul">Reset Spending</button>
+        </div>
+
+        <!-- Bill Gates Tab -->
+        <div id="bill" class="tab-content">
+            <header>
+                <div class="leader-card">
+                    <img src="https://iili.io/3QBAKBV.jpg" alt="Bill Gates" class="leader-image">
+                    <h1>Spend Bill's Money</h1>
+                    <div class="net-worth-display" id="billNetWorth">
+                        Net Worth: $130 billion
+                    </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="stats-title">Spending Statistics</div>
+                    <div id="billStats"></div>
+                </div>
+            </header>
+
+            <div class="total-display" id="billTotal">Total Spent: $0</div>
+
+            <div class="items-grid" id="billItems"></div>
+
+            <button class="reset-btn" data-reset="bill">Reset Spending</button>
+        </div>
+
+        <!-- Elon Musk Tab -->
+        <div id="elon" class="tab-content">
+            <header>
+                <div class="leader-card">
+                    <img src="https://iili.io/3QBo5EF.jpg" alt="Elon Musk" class="leader-image">
+                    <h1>Spend Elon's Money</h1>
+                    <div class="net-worth-display" id="elonNetWorth">
+                        Net Worth: $220 billion
+                    </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="stats-title">Spending Statistics</div>
+                    <div id="elonStats"></div>
+                </div>
+            </header>
+
+            <div class="total-display" id="elonTotal">Total Spent: $0</div>
+
+            <div class="items-grid" id="elonItems"></div>
+
+            <button class="reset-btn" data-reset="elon">Reset Spending</button>
+        </div>
+
+        <!-- Donald Trump Tab -->
+        <div id="trump" class="tab-content">
+            <header>
+                <div class="leader-card">
+                    <img src="https://iili.io/3mxXbJp.jpg" alt="Donald Trump" class="leader-image">
+                    <h1>Spend Trump's Money</h1>
+                    <div class="net-worth-display" id="trumpNetWorth">
+                        Net Worth: $3.1 billion
+                    </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="stats-title">Spending Statistics</div>
+                    <div id="trumpStats"></div>
+                </div>
+            </header>
+
+            <div class="total-display" id="trumpTotal">Total Spent: $0</div>
+
+            <div class="items-grid" id="trumpItems"></div>
+
+            <button class="reset-btn" data-reset="trump">Reset Spending</button>
+        </div>
+    </div>
+
+    <script>
+        // Billionaires data
+        const billionaires = {
+            modi: {
+                name: "Narendra Modi",
+                currency: "₹",
+                initialNetWorth: 285000 * 10000000, // ₹2,85,000 crores
+                image: "https://iili.io/3LLERSt.jpg"
+            },
+            rahul: {
+                name: "Rahul Gandhi",
+                currency: "₹",
+                initialNetWorth: 20000 * 10000000, // ₹20,000 crores
+                image: "https://iili.io/3Qqb03F.jpg"
+            },
+            bill: {
+                name: "Bill Gates",
+                currency: "$",
+                initialNetWorth: 130000000000, // $130 billion
+                image: "https://iili.io/3QBAKBV.jpg"
+            },
+            elon: {
+                name: "Elon Musk",
+                currency: "$",
+                initialNetWorth: 220000000000, // $220 billion
+                image: "https://iili.io/3QBo5EF.jpg"
+            },
+            trump: {
+                name: "Donald Trump",
+                currency: "$",
+                initialNetWorth: 3100000000, // $3.1 billion
+                image: "https://iili.io/3mxXbJp.jpg"
+            }
+        };
+
+        // Sample items data - Combined all items (original + new)
+        const items = [
+            // Original Indian items
+            { 
+                name: "Masala Chai", 
+                price: 10,
+                image: "https://iili.io/3LLQv9I.jpg"
+            },
+            { 
+                name: "Samosa Plate", 
+                price: 50,
+                image: "https://iili.io/3QKqZZu.jpg"
+            },
+            { 
+                name: "Bollywood Movie Ticket", 
+                price: 200,
+                image: "https://iili.io/3QKjo9R.jpg"
+            },
+            { 
+                name: "Jio Phone", 
+                price: 6999,
+                image: "https://iili.io/3QKxJfa.jpg"
+            },
+            { 
+                name: "Slippers", 
+                price: 499,
+                image: "https://iili.io/3QFmWru.jpg"
+            },
+            { 
+                name: "Tata Nano Car", 
+                price: 250000,
+                image: "https://iili.io/3QK0dZJ.jpg"
+            },
+            { 
+                name: "Toyota Fortuner", 
+                price: 3500000,
+                image: "https://iili.io/3QKFvQj.jpg"
+            },
+            { 
+                name: "Ferrari S.p.A", 
+                price: 50000000,
+                image: "https://iili.io/3QKJXOG.jpg"
+            },
+            { 
+                name: "Luxury Trip to Kashmir", 
+                price: 500000,
+                image: "https://iili.io/3QK70UF.jpg"
+            },
+            { 
+                name: "Farmhouse in Goa", 
+                price: 50000000,
+                image: "https://iili.io/3QKMl0x.jpg"
+            },
+            { 
+                name: "Antilia", 
+                price: 15000000000,
+                image: "https://iili.io/3QK9Kge.jpg"
+            },
+            { 
+                name: "Private Jet (1 hour)", 
+                price: 10000000,
+                image: "https://iili.io/3QKXo0J.jpg"
+            },
+            { 
+                name: "IPL Franchise", 
+                price: 5000000000,
+                image: "https://iili.io/3QKIZJf.jpg"
+            },
+            { 
+                name: "Statue of Unity Replica", 
+                price: 30000000000,
+                image: "https://iili.io/3QKRzq7.jpg"
+            },
+            // New luxury items
+            { 
+                name: "Rolex Watch", 
+                price: 10000,
+                image: "https://iili.io/3mxgCx4.jpg"
+            },
+            { 
+                name: "Jet Ski", 
+                price: 15000,
+                image: "https://iili.io/3mx4lcP.jpg"
+            },
+            { 
+                name: "Single Family Home", 
+                price: 350000,
+                image: "https://iili.io/3mxPCv9.jpg"
+            },
+            { 
+                name: "McDonalds Franchise", 
+                price: 1500000,
+                image: "https://iili.io/3mxsR5P.jpg"
+            },
+            { 
+                name: "Gold Bar", 
+                price: 700000,
+                image: "https://iili.io/3mxZoss.jpg"
+            },
+            { 
+                name: "Yacht", 
+                price: 15000000,
+                image: "https://iili.io/3mxbNh7.jpg"
+            },
+            { 
+                name: "M1 Abrams Tank", 
+                price: 8000000,
+                image: "https://iili.io/3mxpcfn.jpg"
+            },
+            { 
+                name: "Formula 1 Car", 
+                price: 15000000,
+                image: "https://iili.io/3mxy2gs.jpg"
+            },
+            { 
+                name: "Apache Helicopter", 
+                price: 52000000,
+                image: "https://iili.io/3mzJCIR.jpg"
+            },
+            { 
+                name: "Mansion", 
+                price: 25000000,
+                image: "https://iili.io/3mz2HUF.jpg"
+            },
+            { 
+                name: "Make a Movie", 
+                price: 100000000,
+                image: "https://iili.io/3mzfbF2.jpg"
+            },
+            { 
+                name: "Boeing 747", 
+                price: 150000000,
+                image: "https://iili.io/3mzCJBj.jpg"
+            },
+            { 
+                name: "Mona Lisa", 
+                price: 860000000,
+                image: "https://iili.io/3mzngiG.jpg"
+            },
+            { 
+                name: "Skyscraper", 
+                price: 1500000000,
+                image: "https://iili.io/3mzxbFj.jpg"
+            },
+            { 
+                name: "Titanic Ship", 
+                price: 400000000,
+                image: "https://iili.io/3mz5ux2.jpg"
+            },
+            { 
+                name: "NBA Team", 
+                price: 2500000000,
+                image: "https://iili.io/3mzcnB2.jpg"
+            }
+        ];
+
+        // Format number with commas
+        function formatNumber(num, currency) {
+            return currency + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Format number in crores
+        function formatCrores(num, currency) {
+            const crores = num / 10000000;
+            return currency + crores.toLocaleString('en-IN') + ' crores';
+        }
+
+        // Format billions
+        function formatBillions(num, currency) {
+            const billions = num / 1000000000;
+            return currency + billions.toLocaleString('en-IN') + ' billion';
+        }
+
+        // Initialize the app
+        const state = {};
+        
+        // Initialize tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Initialize each billionaire's section
+        Object.keys(billionaires).forEach(billionaire => {
+            // Initialize state
+            state[billionaire] = {
+                currentNetWorth: billionaires[billionaire].initialNetWorth,
+                totalSpent: 0,
+                itemCounts: {}
+            };
+
+            // Initialize item counts
+            items.forEach(item => {
+                state[billionaire].itemCounts[item.name] = 0;
+            });
+
+            // Load saved data
+            if (localStorage.getItem(`spendData_${billionaire}`)) {
+                const savedData = JSON.parse(localStorage.getItem(`spendData_${billionaire}`));
+                state[billionaire] = savedData;
+            }
+
+            // Create items grid
+            const itemsGrid = document.getElementById(`${billionaire}Items`);
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'item';
+                itemElement.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="item-image">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">${formatNumber(item.price, billionaires[billionaire].currency)}</div>
+                    <div class="item-actions">
+                        <button class="buy-btn" data-item="${item.name.replace(/\s+/g, '-')}">Buy</button>
+                        <button class="sell-btn" data-item="${item.name.replace(/\s+/g, '-')}" disabled>Sell</button>
+                    </div>
+                    <div class="item-count" id="count-${billionaire}-${item.name.replace(/\s+/g, '-')}">
+                        ${state[billionaire].itemCounts[item.name] || 0}
+                    </div>
+                `;
+                
+                // Add buy event listener
+                itemElement.querySelector('.buy-btn').addEventListener('click', () => {
+                    if (item.price <= state[billionaire].currentNetWorth) {
+                        state[billionaire].totalSpent += item.price;
+                        state[billionaire].currentNetWorth -= item.price;
+                        state[billionaire].itemCounts[item.name] = (state[billionaire].itemCounts[item.name] || 0) + 1;
+                        
+                        updateDisplays(billionaire);
+                        updateItemCount(billionaire, item.name);
+                        updateButtons(billionaire, item.name);
+                        saveData(billionaire);
+                    } else {
+                        alert("Not enough net worth remaining for this purchase!");
+                    }
+                });
+                
+                // Add sell event listener
+                itemElement.querySelector('.sell-btn').addEventListener('click', () => {
+                    if (state[billionaire].itemCounts[item.name] > 0) {
+                        state[billionaire].totalSpent -= item.price;
+                        state[billionaire].currentNetWorth += item.price;
+                        state[billionaire].itemCounts[item.name] -= 1;
+                        
+                        updateDisplays(billionaire);
+                        updateItemCount(billionaire, item.name);
+                        updateButtons(billionaire, item.name);
+                        saveData(billionaire);
+                    }
+                });
+                
+                itemsGrid.appendChild(itemElement);
+            });
+
+            // Set up reset button
+            document.querySelector(`button[data-reset="${billionaire}"]`).addEventListener('click', () => {
+                if (confirm(`Are you sure you want to reset all spending for ${billionaires[billionaire].name}?`)) {
+                    state[billionaire] = {
+                        currentNetWorth: billionaires[billionaire].initialNetWorth,
+                        totalSpent: 0,
+                        itemCounts: {}
+                    };
+                    
+                    items.forEach(item => {
+                        state[billionaire].itemCounts[item.name] = 0;
+                    });
+                    
+                    updateDisplays(billionaire);
+                    items.forEach(item => {
+                        updateItemCount(billionaire, item.name);
+                        updateButtons(billionaire, item.name);
+                    });
+                    
+                    localStorage.removeItem(`spendData_${billionaire}`);
+                }
+            });
+
+            // Initial display update and button states
+            updateDisplays(billionaire);
+            items.forEach(item => {
+                updateButtons(billionaire, item.name);
+            });
+        });
+
+        // Update displays for a billionaire
+        function updateDisplays(billionaire) {
+            const currency = billionaires[billionaire].currency;
+            const isIndian = currency === "₹";
+            
+            // Update total display
+            document.getElementById(`${billionaire}Total`).textContent = 
+                `Total Spent: ${formatNumber(state[billionaire].totalSpent, currency)}`;
+            
+            // Update net worth display
+            const netWorthElement = document.getElementById(`${billionaire}NetWorth`);
+            if (isIndian) {
+                netWorthElement.textContent = 
+                    `Net Worth: ${formatCrores(state[billionaire].currentNetWorth, currency)}`;
+            } else {
+                netWorthElement.textContent = 
+                    `Net Worth: ${formatBillions(state[billionaire].currentNetWorth, currency)}`;
+            }
+            
+            // Update stats
+            updateStats(billionaire);
+        }
+
+        // Update statistics panel
+        function updateStats(billionaire) {
+            const currency = billionaires[billionaire].currency;
+            const isIndian = currency === "₹";
+            const statsElement = document.getElementById(`${billionaire}Stats`);
+            
+            let statsHTML = '';
+            const percentageSpent = ((state[billionaire].totalSpent / billionaires[billionaire].initialNetWorth) * 100).toFixed(6);
+            
+            // Initial and current net worth
+            if (isIndian) {
+                statsHTML += `
+                    <div class="stat-item">
+                        <span>Initial Net Worth:</span>
+                        <span>${formatCrores(billionaires[billionaire].initialNetWorth, currency)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Current Net Worth:</span>
+                        <span>${formatCrores(state[billionaire].currentNetWorth, currency)}</span>
+                    </div>
+                `;
+            } else {
+                statsHTML += `
+                    <div class="stat-item">
+                        <span>Initial Net Worth:</span>
+                        <span>${formatBillions(billionaires[billionaire].initialNetWorth, currency)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Current Net Worth:</span>
+                        <span>${formatBillions(state[billionaire].currentNetWorth, currency)}</span>
+                    </div>
+                `;
+            }
+            
+            // Total spent and percentage
+            statsHTML += `
+                <div class="stat-item">
+                    <span>Total Spent:</span>
+                    <span>${formatNumber(state[billionaire].totalSpent, currency)}</span>
+                </div>
+                <div class="stat-item">
+                    <span>Percentage Spent:</span>
+                    <span>${percentageSpent}%</span>
+                </div>
+            `;
+            
+            // Purchased items
+            statsHTML += `<div style="margin-top: 10px; font-weight: bold;">Purchased Items:</div>`;
+            
+            let hasPurchases = false;
+            for (const itemName in state[billionaire].itemCounts) {
+                if (state[billionaire].itemCounts[itemName] > 0) {
+                    hasPurchases = true;
+                    const item = items.find(i => i.name === itemName);
+                    statsHTML += `
+                        <div class="stat-item">
+                            <span>${itemName} (${state[billionaire].itemCounts[itemName]}):</span>
+                            <span>${formatNumber(item.price * state[billionaire].itemCounts[itemName], currency)}</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (!hasPurchases) {
+                statsHTML += `<div style="color: #666; text-align: center; margin-top: 5px; font-size: 0.8rem;">No purchases yet</div>`;
+            }
+            
+            statsElement.innerHTML = statsHTML;
+        }
+
+        // Update item count display
+        function updateItemCount(billionaire, itemName) {
+            const countElement = document.getElementById(`count-${billionaire}-${itemName.replace(/\s+/g, '-')}`);
+            if (countElement) {
+                countElement.textContent = state[billionaire].itemCounts[itemName];
+                countElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    countElement.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }
+
+        // Update button states
+        function updateButtons(billionaire, itemName) {
+            const item = items.find(i => i.name === itemName);
+            const normalizedName = itemName.replace(/\s+/g, '-');
+            
+            // Update buy button
+            const buyBtn = document.querySelector(`#${billionaire}Items .buy-btn[data-item="${normalizedName}"]`);
+            if (buyBtn) {
+                buyBtn.disabled = item.price > state[billionaire].currentNetWorth;
+            }
+            
+            // Update sell button
+            const sellBtn = document.querySelector(`#${billionaire}Items .sell-btn[data-item="${normalizedName}"]`);
+            if (sellBtn) {
+                sellBtn.disabled = state[billionaire].itemCounts[itemName] <= 0;
+            }
+        }
+
+        // Save data to localStorage
+        function saveData(billionaire) {
+            localStorage.setItem(`spendData_${billionaire}`, JSON.stringify(state[billionaire]));
+        }
+    </script>
+</body>
+</html>
